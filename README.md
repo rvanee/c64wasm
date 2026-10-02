@@ -6,6 +6,11 @@ monitor on a desk.
 
 By R.F. van Ee. Licensed under MIT or Apache-2.0, at your option.
 
+**Live demo: <https://rvanee.github.io/c64wasm/>.** GitHub Actions builds
+it from the sources in this repository and publishes it on every push to
+`main`. The first time you open it, it asks for the Commodore ROMs; click
+**Find them automatically** (see [ROMs](#roms)).
+
 - **6510 CPU**: validated against Tom Harte's single-step tests, with
   interrupt timing checked against VICE. The same 6502 core runs the 1541.
 - **VIC-II**: modelled cycle by cycle after Christian Bauer's description.
