@@ -123,7 +123,7 @@ If a listing site is down, that ROM is missing for the run. The run shows a
 warning, and the tests that need the ROM skip themselves.
 
 Pushes to `main` also publish the page to GitHub Pages. Tags like `v1.0`
-also attach the zip to a GitHub release. See `docs/publishing.md`.
+also attach the zip to a GitHub release. See [docs/publishing.md](docs/publishing.md).
 
 ## Layout
 
@@ -179,7 +179,15 @@ The page:
 
 ### `docs/`
 
-Design notes and publishing steps.
+The documentation; start at [docs/README.md](docs/README.md):
+
+- [architecture](docs/architecture.md): layers, modules, and how the
+  chips are wired;
+- [CPU](docs/cpu.md) (including the illegal opcodes), [VIC-II](docs/vic-ii.md),
+  [SID](docs/sid.md), [CIA and VIA](docs/cia-via.md), [1541](docs/1541.md);
+- [the web page](docs/web.md);
+- [test strategy](docs/testing.md) and [information sources](docs/sources.md);
+- [publishing](docs/publishing.md) on GitHub.
 
 ## Credits
 

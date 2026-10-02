@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 R.F. van Ee
 
-//! Task 9 end-to-end regression tests: a real C64 (BASIC + KERNAL) and a
+//! End-to-end disk tests: a real C64 (BASIC + KERNAL) and a
 //! real 1541 (DOS ROM), co-simulated through the IEC bus, doing what a
 //! user would do at the keyboard:
 //!

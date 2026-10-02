@@ -2,7 +2,7 @@
 // Copyright (c) 2026 R.F. van Ee
 
 //! How VIA1 is wired to the serial bus (confirmed from the DOS ROM, see
-//! `docs/1541-plan.md`).
+//! `docs/1541.md`).
 //!
 //! VIA1 Port B: bit 0 DATA IN, 1 DATA OUT, 2 CLOCK IN, 3 CLOCK OUT, 4 ATNA
 //! (ATN acknowledge), 5-6 device number, 7 ATN IN. CA1 is ATN, active on

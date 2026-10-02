@@ -6,7 +6,7 @@
 //! form by `d64` (plain sector images) and `g64` (raw GCR captures).
 //!
 //! Track layout and the four speed zones are standard community facts
-//! (see `docs/1541-plan.md`). At 300 rpm a track holds `bit_rate * 0.2 / 8`
+//! (see `docs/1541.md`). At 300 rpm a track holds `bit_rate * 0.2 / 8`
 //! bytes, e.g. 7692 for zone 3; D64 tracks are padded to that.
 
 mod d64;
@@ -20,7 +20,7 @@ pub mod gcr;
 pub const HALF_TRACK_SLOTS: usize = 84;
 
 /// Sectors per track for the standard 35-track layout, or `None` outside
-/// 1-35 (see `/docs/1541-plan.md`: tracks beyond 35 are physically
+/// 1-35 (see `docs/1541.md`: tracks beyond 35 are physically
 /// reachable but outside what any stock DOS formats or reads, so this
 /// project doesn't synthesize or interpret data for them).
 pub fn sectors_per_track(track: u8) -> Option<u8> {
@@ -104,14 +104,11 @@ impl Disk {
     }
 
     /// Mutable access to a half-track's raw GCR bytes, for the drive
-    /// mechanics' write path. `None` if that half-track has no data at all
-    /// -- writing to a completely unformatted half-track (as a real FORMAT
-    /// command would) isn't supported by this project yet; see
-    /// `/docs/1541-plan.md`'s phase-1 scope note. Writing to an existing
-    /// track (the SAVE/overwrite-a-file case) works: the returned buffer is
-    /// the exact same bytes `track_data`/`half_track_data` return, so a
-    /// caller can overwrite individual bytes at the head's current
-    /// position.
+    /// mechanics' write path. `None` if that half-track has no data at all:
+    /// the head only writes where the disk has a track buffer (every D64
+    /// has one for tracks 1-35, so formatting and saving work; see
+    /// `docs/1541.md`). The returned buffer is the same bytes
+    /// `track_data`/`half_track_data` return.
     pub fn half_track_data_mut(&mut self, half_track: u8) -> Option<&mut Vec<u8>> {
         self.tracks.get_mut(half_track as usize - 1)?.as_mut()
     }

@@ -1,6 +1,6 @@
 REM Before typing this listing, relocate BASIC's own program storage out of
 REM the way of the sprite data POKEd below at 2048-2110, by typing this at
-REM the READY. prompt first (see src/bin/crabs.rs for what each POKE does):
+REM the READY. prompt first (memory and BASIC start at $4000, a 0 before it):
 REM   POKE 642,64:POKE 44,64:POKE 16384,0:NEW
 10 S=54272 : POKE S+24,15
 20 POKE S+1,115 : POKE S,88

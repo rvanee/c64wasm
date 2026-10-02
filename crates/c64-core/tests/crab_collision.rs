@@ -3,9 +3,8 @@
 
 //! Regression tests for VIC-II sprite-sprite and sprite-background collision
 //! (`$D01E`/`$D01F`) derived from a real user-authored program: the "two
-//! crabs" listing (`SpriteCollision.bas` in this crate's root -- see
-//! `src/bin/crabs.rs` for the full end-to-end version that types and runs
-//! the actual corrected BASIC listing). The crab shape below is the exact
+//! crabs" listing (`SpriteCollision.bas` in this crate's root, which
+//! `tests/disk_basic_roundtrip.rs` types, saves and loads). The crab shape below is the exact
 //! 63-byte hi-res sprite data from that listing's `DATA` statements, not a
 //! synthetic placeholder, so a regression here is a regression on the same
 //! shape the real program uses.

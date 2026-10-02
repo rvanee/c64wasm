@@ -20,13 +20,10 @@
 //! conventional layout documented across the community (also corroborated
 //! by the 4040 Anatomy doc's byte-count arithmetic: 8 raw header bytes and
 //! 260 raw data-block bytes both divide evenly into groups of 4, matching
-//! the confirmed 10-GCR-byte header / 325-GCR-byte data block sizes) --
-//! see `/docs/1541-plan.md` for what's independently confirmed vs. accepted
-//! as a documented assumption. Because the ultimate test of "did we get the
-//! exact byte order right" is whether the *real* 1541 DOS ROM can read a
-//! disk this module wrote (see the end-to-end tests planned in
-//! `/docs/1541-plan.md`), getting a field order wrong here would be caught
-//! empirically, not just left as a silent risk.
+//! the confirmed 10-GCR-byte header / 325-GCR-byte data block sizes). The
+//! real 1541 DOS ROM reads disks this module wrote and writes disks it
+//! decodes (`tests/disk_basic_roundtrip.rs`), so a wrong field order would
+//! be caught. See `docs/1541.md`.
 
 /// The 16 valid 4-bit-to-5-bit GCR codes, indexed by the 4-bit nibble.
 pub const ENCODE: [u8; 16] = [
@@ -181,7 +178,7 @@ pub fn gcr_decode_blocks(gcr: &[u8]) -> Option<Vec<u8>> {
 }
 
 /// A raw (post-GCR) sync mark: 5 bytes of all 1-bits (40 consecutive 1s),
-/// the length real Commodore firmware writes -- see `/docs/1541-plan.md`.
+/// the length real Commodore firmware writes -- see `docs/1541.md`.
 /// Sync marks are the one part of the bitstream that's deliberately *not*
 /// GCR data (10 consecutive 1-bits can never occur inside valid GCR-encoded
 /// data, which is exactly what lets the drive's hardware synchronizer find

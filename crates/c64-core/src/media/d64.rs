@@ -153,13 +153,10 @@ fn extract_bits_as_bytes(bytes: &[u8], start_bit: usize, num_bytes: usize) -> Op
 /// `extract_bits_as_bytes`'s doc comment), so a scan that only ever checks
 /// whether a whole byte equals literal `$FF` misses every sync mark that
 /// isn't coincidentally byte-aligned -- which, for a freshly-written
-/// sector, is the common case, not the exception (Task 9 finding: this is
-/// *not* what made the LOAD/read path fail, since `Mechanics`'s own
-/// `advance_one_bit` read branch already tracks `sync_run` bit-by-bit and
-/// was never affected -- this byte-level scan only lived here, in the
-/// offline `to_d64()`/export path). 10 consecutive 1-bits is the real
-/// hardware minimum for a sync mark (matching `Mechanics::sync_input_bit`'s
-/// own threshold) and is safe against false positives: valid 4-to-5 GCR
+/// sector, is the common case, not the exception. 10 consecutive 1-bits
+/// is the real hardware minimum for a sync mark (the same threshold as
+/// `ReadWrite` in the drive's read/write electronics) and is safe against
+/// false positives: valid 4-to-5 GCR
 /// code is specifically designed so no run of valid codewords ever
 /// produces 10 consecutive 1-bits.
 fn decode_track_sectors(track: &[u8], _expected_sectors: u8) -> Vec<(gcr::Header, [u8; 256])> {
@@ -268,7 +265,7 @@ mod tests {
         d64
     }
 
-    /// Regression test for the Task 9 half-track translation bug (see
+    /// Regression test for the half-track translation (see
     /// `mechanics.rs`'s module doc comment): confirms a real D64's track 18
     /// decodes correctly and lands at storage half-track 36 (`2 * 18`),
     /// which is the exact half-track `Mechanics`'s physical-to-storage
