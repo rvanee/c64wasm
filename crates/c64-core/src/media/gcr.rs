@@ -163,9 +163,8 @@ pub fn parse_data_block(bytes: &[u8; 260]) -> Option<[u8; 256]> {
 pub fn gcr_encode_blocks(raw: &[u8]) -> Vec<u8> {
     assert_eq!(raw.len() % 4, 0, "GCR block encoding requires a multiple of 4 raw bytes");
     let mut out = Vec::with_capacity(raw.len() / 4 * 5);
-    for chunk in raw.chunks_exact(4) {
-        let group: [u8; 4] = chunk.try_into().unwrap();
-        out.extend_from_slice(&encode_4_to_5(&group));
+    for group in raw.as_chunks::<4>().0 {
+        out.extend_from_slice(&encode_4_to_5(group));
     }
     out
 }
@@ -175,9 +174,8 @@ pub fn gcr_encode_blocks(raw: &[u8]) -> Vec<u8> {
 pub fn gcr_decode_blocks(gcr: &[u8]) -> Option<Vec<u8>> {
     assert_eq!(gcr.len() % 5, 0, "GCR block decoding requires a multiple of 5 GCR bytes");
     let mut out = Vec::with_capacity(gcr.len() / 5 * 4);
-    for chunk in gcr.chunks_exact(5) {
-        let group: [u8; 5] = chunk.try_into().unwrap();
-        out.extend_from_slice(&decode_5_to_4(&group)?);
+    for group in gcr.as_chunks::<5>().0 {
+        out.extend_from_slice(&decode_5_to_4(group)?);
     }
     Some(out)
 }

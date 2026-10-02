@@ -1,7 +1,8 @@
 # Test, build and publish c64wasm.
 #
 # On every push and pull request: check formatting and lints, run the Rust
-# and JavaScript tests, and build the WebAssembly page. On a push to main: also publish the page to GitHub Pages.
+# and JavaScript tests, and build the WebAssembly page. On a push to main:
+# also publish the page to GitHub Pages.
 # On a tag like v1.0: also attach a zip of the built page to a GitHub release.
 #
 # No Commodore ROMs are stored anywhere: the test job rebuilds them from
@@ -20,17 +21,20 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# The Rust toolchain is the current stable one, so a new Rust release can
+# bring new clippy lints that fail the Lints step; fix the code they point at.
+
 jobs:
   test:
     name: Rust tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - name: Formatting
@@ -56,7 +60,7 @@ jobs:
     permissions:
       contents: write   # only used to attach the zip to a release
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
@@ -84,16 +88,18 @@ jobs:
           find web -name '*.js' -o -name '*.mjs' | while read -r f; do cp "$f" /tmp/check.mjs; node --check /tmp/check.mjs || exit 1; done
       - name: Zip the page
         run: cd web && zip -qr ../c64wasm-web.zip .
-      - uses: actions/upload-artifact@v4
+      # archive: false uploads the zip as it is (the download is the zip
+      # itself, not a zip inside a zip); it is then named c64wasm-web.zip.
+      - uses: actions/upload-artifact@v7
         with:
-          name: c64wasm-web
           path: c64wasm-web.zip
-      - uses: actions/upload-pages-artifact@v3
+          archive: false
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: web
       - name: Attach to the release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: c64wasm-web.zip
 
@@ -110,4 +116,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
