@@ -1,0 +1,198 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
+<!-- Copyright (c) 2026 R.F. van Ee -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>c64wasm</title>
+<meta name="description" content="A cycle-exact Commodore 64 with a 1541 disk drive, in the browser">
+<meta name="author" content="R.F. van Ee">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>c64wasm</h1>
+  <button id="powerBtn" class="icon power" title="Power: switch the C64 and 1541 on or off (off and on again resets them; the disk stays in)" aria-label="Power">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M12 3v8M7.1 6.3a7.5 7.5 0 1 0 9.8 0"/></svg>
+  </button>
+  <span class="spacer"></span>
+  <span id="driveStatus"></span>
+  <span id="speedReadout"></span>
+  <button id="soundBtn" class="icon" title="Mute" aria-label="Mute"></button>
+  <input type="range" id="volume" min="0" max="1" step="0.01" value="0.7" title="Volume" aria-label="Volume">
+  <button id="settingsBtn" class="icon" title="Settings" aria-label="Settings">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
+  </button>
+</header>
+
+<div id="viewport">
+  <div id="stage" tabindex="0" aria-label="Commodore 64; click to type">
+    <!-- The desk: a photo with the live picture on the monitor's screen. The
+         stage's class (crt or flat) selects the photo and the positions. -->
+    <div id="scene">
+      <img class="photo crt-only" src="assets/setup.jpg" alt="Commodore 64, 1541 disk drive and Commodore 2002 monitor">
+      <img class="photo flat-only" src="assets/setup-flat.jpg" alt="Commodore 64, 1541 disk drive and a flat-panel monitor">
+      <div id="spill"></div>
+      <canvas id="crt"></canvas>
+      <div class="led" data-led="c64" id="ledC64"><div class="off"></div><div class="halo"></div><div class="core"></div></div>
+      <div class="led" data-led="power" id="ledPower"><div class="off"></div><div class="halo"></div><div class="core"></div></div>
+      <div class="led" data-led="act" id="ledAct"><div class="off"></div><div class="halo"></div><div class="core"></div></div>
+      <div class="led crt-only" data-led="monitor" id="ledMonitor"><div class="off"></div><div class="halo"></div><div class="core"></div></div>
+      <div class="hotspot" id="hotDrive" title="1541: click to insert a disk image (.d64/.g64)"></div>
+      <div class="hotspot" id="hotDisks" title="Disks: click to insert a disk image (.d64/.g64)"></div>
+      <div class="hotspot crt-only" id="hotControls" title="Commodore 2002: open the control door"></div>
+      <div class="hotspot crt-only" id="hotMonitorPower" title="Commodore 2002: power switch"></div>
+      <canvas id="driveLcd" title="Disk display (an add-on, not original 1541 hardware)"></canvas>
+      <canvas id="driveLcdZoom" aria-hidden="true"></canvas>
+      <div id="monitorPanel" class="crt-only" hidden role="group" aria-label="Commodore 2002 controls">
+        <div class="knobs"></div>
+        <div class="switch-box">
+          <button type="button" class="comp-sep" aria-label="Video input: composite or separate luma/chroma"><span class="lever"></span></button>
+          <div class="switch-labels"><span>COMP</span><span>SEP</span></div>
+        </div>
+        <button type="button" id="monitorPanelClose" class="icon" aria-label="Close the control door">&times;</button>
+      </div>
+    </div>
+    <button id="zoomBtn" class="overlay-btn" title="Zoom in on the screen" aria-label="Zoom in on the screen"></button>
+    <div id="dropHint">Drop a .d64 / .g64 disk image to insert it</div>
+    <div id="message"></div>
+  </div>
+</div>
+
+<main>
+  <div class="panel">
+    <h2>Disk</h2>
+    <div class="row">
+      <input type="file" id="diskFile" accept=".d64,.g64" hidden>
+      <button id="insertBtn">Insert disk image&hellip;</button>
+      <button id="ejectBtn">Eject</button>
+      <button id="downloadBtn" title="Save the disk as it is now, including anything SAVEd to it">Download .d64</button>
+      <span class="hint" id="diskName">no disk</span>
+    </div>
+    <div class="row hint">Or drop a .d64/.g64 onto the picture, or click the 1541 or the stack of disks. Try <code>LOAD"$",8</code> then <code>LIST</code>.</div>
+    <div class="row hint">Disks that come with this page: <a href="disks/hello.d64" data-disk>test disk</a> (HELLO, SHUTTLE, SPRITE DEMO) &middot; <a href="disks/empty.d64" data-disk>empty disk</a></div>
+  </div>
+  <div class="panel">
+    <h2>Type in a BASIC listing</h2>
+    <div class="row">
+      <input type="file" id="basicFile" accept=".bas,.txt,.asc">
+      <button id="typeFileBtn" disabled>Type it</button>
+      <button id="cancelTypeBtn" hidden>Cancel</button>
+      <span class="hint" id="typeStatus"></span>
+    </div>
+    <div class="row hint">Keys are pressed on the emulated keyboard one by one. Click the picture to type yourself: RUN/STOP = Esc, C= = Left Alt, &pound; = Backquote, RESTORE = Page Up.</div>
+  </div>
+  <div class="row hint">On the Commodore 2002, click the door under the screen for its controls, and its power button to switch the monitor on and off. Settings &gt; Display switches to a flat panel.</div>
+</main>
+
+<dialog id="welcome">
+  <form method="dialog" class="dlg-head">
+    <h2>Commodore ROMs needed</h2>
+    <button class="icon" value="close" aria-label="Close">&times;</button>
+  </form>
+  <section>
+    <p class="hint">The emulator runs Commodore's original firmware: BASIC, the KERNAL, the character set and the 1541 disk drive's DOS. It can't come with this page, so it is set up once and kept in this browser only.</p>
+    <div class="wz-choices">
+      <button type="button" id="wzAuto" class="primary">Find them automatically</button>
+      <button type="button" id="wzManual">Specify them myself&hellip;</button>
+    </div>
+    <p class="hint">Automatically: the page rebuilds each ROM from public disassemblies and checks it against the real chip. Yourself: give a ROM file, or a file or web address of a disassembly or hex dump.</p>
+    <div id="wzRows"></div>
+    <p id="wzResult" class="hint"></p>
+    <div class="row"><button type="button" id="wzStart" disabled>Switch on</button></div>
+  </section>
+</dialog>
+<dialog id="settings">
+  <form method="dialog" class="dlg-head">
+    <h2>Settings</h2>
+    <button class="icon" value="close" aria-label="Close">&times;</button>
+  </form>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="machine" aria-selected="true">Machine</button>
+    <button role="tab" data-tab="display">Display</button>
+    <button role="tab" data-tab="sound">Sound</button>
+    <button role="tab" data-tab="drive">Disk drive</button>
+    <button role="tab" data-tab="roms">ROMs</button>
+  </nav>
+
+  <section data-pane="machine">
+    <label class="field"><span>Video standard</span>
+      <select id="setVideo">
+        <option value="pal">PAL &mdash; VIC-II 6569 (Europe, Australia)</option>
+        <option value="ntsc">NTSC &mdash; VIC-II 6567R8 (North America, Japan)</option>
+        <option value="ntsc-old" disabled>NTSC early &mdash; 6567R56A (not emulated yet)</option>
+        <option value="paln" disabled>PAL-N &mdash; 6572 Drean (not emulated yet)</option>
+      </select>
+    </label>
+    <label class="field"><span>Speed</span>
+      <select id="setSpeed">
+        <option value="realtime">True speed (the machine's own clock)</option>
+        <option value="fast">As fast as possible</option>
+      </select>
+    </label>
+    <p class="hint">Changing the video standard restarts the machine (the disk is kept). Emulation is always cycle-exact; "as fast as possible" only removes the pacing.</p>
+  </section>
+
+  <section data-pane="display" hidden>
+    <label class="field"><span>Display</span>
+      <select id="setDisplay">
+        <option value="crt">Commodore 2002 colour monitor (picture tube)</option>
+        <option value="lcd">Modern flat panel</option>
+      </select>
+    </label>
+    <label class="field"><span>Connection</span>
+      <select id="setConnection">
+        <option value="rf">RF &mdash; antenna input, TV channel 3/36</option>
+        <option value="composite">Composite video (one cable)</option>
+        <option value="svideo">S-Video / separate luma &amp; chroma</option>
+      </select>
+    </label>
+    <p class="hint" id="connHint"></p>
+    <div id="tubeBox">
+      <div class="row"><button type="button" id="monitorControlsBtn">Monitor controls&hellip;</button><span class="hint">Brightness, contrast, colour, tint, position and hold: the knobs behind the 2002's door (click the door under the screen).</span></div>
+      <h3>Picture tube</h3>
+      <div class="sliders" id="sliders"></div>
+      <div class="row"><button id="resetTube" type="button">Defaults</button><span class="hint" id="glInfo"></span></div>
+    </div>
+  </section>
+
+  <section data-pane="sound" hidden>
+    <label class="field"><span>SID chip</span>
+      <select id="setSid">
+        <option value="6581">6581 &mdash; original C64</option>
+        <option value="8580">8580 &mdash; C64C / C64-II</option>
+      </select>
+    </label>
+    <label class="field check"><input type="checkbox" id="setDriveSounds"><span>1541 mechanics: motor, head steps and the famous head bang</span></label>
+    <label class="field"><span>Drive volume</span><input type="range" id="setDriveVolume" min="0" max="1" step="0.01"></label>
+    <p class="hint">Switching the SID chip resets its registers; a tune that is playing may need restarting. The main volume is the slider in the top bar (all the way left = muted).</p>
+  </section>
+
+  <section data-pane="drive" hidden>
+    <label class="field check"><input type="checkbox" id="setDriveOn"><span>1541 connected to the serial port</span></label>
+    <label class="field"><span>Device number</span>
+      <select id="setDeviceNumber">
+        <option value="8">8 (factory setting)</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+      </select>
+    </label>
+    <label class="field check"><input type="checkbox" id="setDriveLcd"><span>Disk display on the 1541's front: the disk's name and ID (a modern add-on, not original hardware)</span></label>
+    <p class="hint" id="deviceHint">On a real 1541 the number is set by cutting jumper pads inside the drive. Use it in commands: <code>LOAD"$",9</code>. Changing it restarts the machine.</p>
+  </section>
+
+  <section data-pane="roms" hidden>
+    <div class="row">
+      <button type="button" id="romAutoAll" class="primary">Find missing ROMs automatically</button>
+      <span class="hint">Each ROM type can have several images; the selected one is used. Changes restart the machine.</span>
+    </div>
+    <div id="romManager"></div>
+  </section>
+</dialog>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

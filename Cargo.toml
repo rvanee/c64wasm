@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = ["crates/c64-core", "crates/c64-wasm"]
+
+[profile.release]
+lto = true
+
+# Only the wasm-facing crate is size-optimized -- the native test/render/
+# tomharte binaries stay at the default (speed-optimized) opt-level, since
+# their whole point is running many millions of cycles as fast as possible.
+[profile.release.package.c64-wasm]
+opt-level = "s"

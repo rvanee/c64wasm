@@ -1,0 +1,9 @@
+{
+  "name": "c64wasm-web",
+  "private": true,
+  "type": "module",
+  "description": "The c64wasm web page (no build step: plain ES modules)",
+  "author": "R.F. van Ee",
+  "license": "MIT OR Apache-2.0",
+  "scripts": { "test": "node --test" }
+}

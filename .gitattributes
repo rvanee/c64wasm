@@ -1,0 +1,11 @@
+* text=auto
+*.sh text eol=lf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.rom binary
+*.bin binary
+*.d64 binary
+*.g64 binary
+*.prg binary
+*.png binary
+*.jpg binary

@@ -1,0 +1,30 @@
+[package]
+name = "c64-core"
+version = "0.1.0"
+edition = "2021"
+authors = ["R.F. van Ee"]
+license = "MIT OR Apache-2.0"
+description = "A cycle-exact Commodore 64 and 1541 disk drive emulator core"
+readme = "../../README.md"
+keywords = ["c64", "commodore", "emulator", "6502", "1541"]
+categories = ["emulators"]
+
+[lib]
+name = "c64_core"
+path = "src/lib.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
+
+[features]
+harness = ["serde", "serde_json"]
+
+[[bin]]
+name = "tomharte"
+path = "src/bin/tomharte.rs"
+required-features = ["harness"]
+
+[[bin]]
+name = "make_test_disks"
+path = "src/bin/make_test_disks.rs"
