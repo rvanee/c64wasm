@@ -2,8 +2,9 @@
 // Copyright (c) 2026 R.F. van Ee
 
 //! The real 1541 DOS ROM boots on its own and sets up both VIAs as the
-//! disassembly says: VIA1 DDRB = $1A at $FF10 and, after the ROM checksum
-//! (about a million cycles), VIA2 DDRB = $6F at $F259.
+//! disassembly says: VIA1 DDRB = $1A (early, at $FF10, in 901229-05; after
+//! the ROM and RAM test in the original 901229-01) and, after the ROM
+//! checksum (about a million cycles), VIA2 DDRB = $6F at $F259.
 
 mod common;
 

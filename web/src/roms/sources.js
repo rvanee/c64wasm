@@ -130,6 +130,7 @@ export const AUTO_SOURCES = {
   ],
   dos: [
     { url: 'https://g3sl.github.io/c1541rom.html', what: 'commented 1541 ROM disassembly (g3sl.github.io)' },
+    { url: 'https://raw.githubusercontent.com/g3sl/g3sl.github.io/master/c1541rom.html', what: 'the same disassembly, from its GitHub repository' },
   ],
 };
 
